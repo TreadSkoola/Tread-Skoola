@@ -3,110 +3,50 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
-// Import komponen UI
-import { Button } from "/components/ui/button";
-import { Input } from "/components/ui/input";
-import { Label } from "/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "/components/ui/card";
+// Simple UI Components Replacement
+const Button = ({ children, variant = 'default', className = '', ...props }: any) => (
+  <button className={`px-4 py-2 rounded-md font-medium transition-colors ${
+    variant === 'default' ? 'bg-blue-600 text-white hover:bg-blue-700' :
+    variant === 'outline' ? 'border border-gray-300 hover:bg-gray-100' :
+    variant === 'secondary' ? 'bg-gray-100 hover:bg-gray-200' :
+    'bg-blue-600 text-white hover:bg-blue-700'
+  } ${className}`} {...props}>
+    {children}
+  </button>
+);
 
-// Komponen Autentikasi
-const AuthModal = ({ isOpen, onClose, onLogin, onRegister }: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  onLogin: (email: string, password: string) => void;
-  onRegister: (email: string, username: string, password: string) => void;
-}) => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  <div className={`bg-white rounded-lg border border-gray-200 shadow-sm ${className}`} {...props}>
+    {children}
+  </div>
+);
+const CardHeader = ({ children, className = '' }: any) => (
+  <div className={`p-6 ${className}`}>{children}</div>
+);
+const CardTitle = ({ children, className = '' }: any) => (
+  <h3 className={`text-xl font-semibold ${className}`}>{children}</h3>
+);
+const CardDescription = ({ children, className = '' }: any) => (
+  <p className={`text-gray-600 text-sm ${className}`}>{children}</p>
+);
+const CardContent = ({ children, className = '' }: any) => (
+  <div className={`p-6 pt-0 ${className}`}>{children}</div>
+);
+const CardFooter = ({ children, className = '' }: any) => (
+  <div className={`p-6 pt-0 ${className}`}>{children}</div>
+);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isLogin) {
-      onLogin(email, password);
-    } else {
-      onRegister(email, username, password);
-    }
-  };
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-          onClick={onClose}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-background rounded-lg p-6 w-full max-w-md"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-2xl font-bold mb-6 text-foreground">
-              {isLogin ? 'Masuk' : 'Daftar'}
-            </h2>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="email" className="text-foreground">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="mt-1"
-                />
               </div>
               
-              {!isLogin && (
-                <div>
-                  <Label htmlFor="username" className="text-foreground">Username</Label>
-                  <Input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                    className="mt-1"
-                  />
-                </div>
-              )}
-              
-              <div>
-                <Label htmlFor="password" className="text-foreground">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              
-              <Button type="submit" className="w-full bg-primary text-primary-foreground">
+              <Button type="submit" className="w-full">
                 {isLogin ? 'Masuk' : 'Daftar'}
               </Button>
             </form>
             
-            <p className="mt-4 text-center text-muted-foreground">
+            <p className="mt-4 text-center text-gray-600">
               {isLogin ? 'Belum punya akun? ' : 'Sudah punya akun? '}
               <button
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-primary hover:underline"
+                className="text-blue-600 hover:underline"
               >
                 {isLogin ? 'Daftar' : 'Masuk'}
               </button>
