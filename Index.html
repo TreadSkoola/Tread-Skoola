@@ -1,509 +1,76 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import React, { useState, useEffect } from 'react';
 
-// Import komponen UI
-import { Button } from "/components/ui/button";
-import { Input } from "/components/ui/input";
-import { Label } from "/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "/components/ui/card";
-
-// Komponen Autentikasi
-const AuthModal = ({ isOpen, onClose, onLogin, onRegister }: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  onLogin: (email: string, password: string) => void;
-  onRegister: (email: string, username: string, password: string) => void;
-}) => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isLogin) {
-      onLogin(email, password);
-    } else {
-      onRegister(email, username, password);
-    }
+// Simple UI Components
+const Button = ({ children, onClick, variant = 'primary', className = '' }: any) => {
+  const baseStyle = 'px-4 py-2 rounded-md font-medium transition-colors';
+  const variants = {
+    primary: 'bg-blue-600 text-white hover:bg-blue-700',
+    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
+    outline: 'border border-gray-300 bg-white hover:bg-gray-50'
   };
-
+  
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-          onClick={onClose}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-background rounded-lg p-6 w-full max-w-md"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-2xl font-bold mb-6 text-foreground">
-              {isLogin ? 'Masuk' : 'Daftar'}
-            </h2>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="email" className="text-foreground">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              
-              {!isLogin && (
-                <div>
-                  <Label htmlFor="username" className="text-foreground">Username</Label>
-                  <Input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                    className="mt-1"
-                  />
-                </div>
-              )}
-              
-              <div>
-                <Label htmlFor="password" className="text-foreground">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              
-              <Button type="submit" className="w-full bg-primary text-primary-foreground">
-                {isLogin ? 'Masuk' : 'Daftar'}
-              </Button>
-            </form>
-            
-            <p className="mt-4 text-center text-muted-foreground">
-              {isLogin ? 'Belum punya akun? ' : 'Sudah punya akun? '}
-              <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-primary hover:underline"
-              >
-                {isLogin ? 'Daftar' : 'Masuk'}
-              </button>
-            </p>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <button 
+      className={`${baseStyle} ${variants[variant]} ${className}`}
+      onClick={onClick}
+    >
+      {children}
+    </button>
   );
 };
 
-// Komponen Konten Edukatif dengan Gambar
-const ArticleCard = ({ 
-  title, 
-  category, 
-  excerpt, 
-  onBookmark, 
-  isBookmarked,
-  isPremium = false,
-  image
-}: {
-  title: string;
-  category: string;
-  excerpt: string;
-  onBookmark: () => void;
-  isBookmarked: boolean;
-  isPremium?: boolean;
-  image: string;
-}) => (
-  <motion.div
-    whileHover={{ y: -5 }}
-    transition={{ duration: 0.2 }}
-  >
-    <Card className="h-full overflow-hidden border-2 border-blue-100 hover:border-blue-300">
-      <div className="relative">
-        <img 
-          src={image} 
-          alt={`Ilustrasi pembelajaran ${title} dengan gaya kartun edukatif`}
-          className="w-full h-48 object-cover"
-        />
-        <button
-          onClick={onBookmark}
-          className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md hover:bg-blue-50"
-        >
-          {isBookmarked ? (
-            <img 
-              src="https://placeholder-image-service.onrender.com/image/20x20?prompt=Blue%20bookmark%20icon%20filled%20with%20math%20symbols&id=math-bookmark-filled-1" 
-              alt="Bookmark icon filled with math symbols indicating saved article" 
-              width={20}
-              height={20}
-            />
-          ) : (
-            <img 
-              src="https://placeholder-image-service.onrender.com/image/20x20?prompt=Outline%20bookmark%20icon%20with%20plus%20sign%20for%20saving%20math%20articles&id=math-bookmark-outline-1" 
-              alt="Outline bookmark icon with plus sign for saving math articles" 
-              width={20}
-              height={20}
-            />
-          )}
-        </button>
-        {isPremium && (
-          <span className="absolute top-3 left-3 bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
-            Premium
-          </span>
-        )}
-      </div>
-      <CardHeader>
-        <CardTitle className="text-foreground text-lg">{title}</CardTitle>
-        <CardDescription className="text-blue-600 font-medium">
-          {category}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-foreground">{excerpt}</p>
-      </CardContent>
-      <CardFooter>
-        <Button variant="outline" className="w-full border-blue-300 text-blue-600 hover:bg-blue-50">
-          Baca Selengkapnya
-        </Button>
-      </CardFooter>
-    </Card>
-  </motion.div>
+const Input = ({ value, onChange, placeholder, type = 'text', className = '' }: any) => (
+  <input
+    type={type}
+    value={value}
+    onChange={onChange}
+    placeholder={placeholder}
+    className={`px-3 py-2 border border-gray-300 rounded-md ${className}`}
+  />
 );
 
-// Komponen Game Kuis
-const QuizGame = () => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showScore, setShowScore] = useState(false);
+const Card = ({ children, className = '' }: any) => (
+  <div className={`bg-white rounded-lg border border-gray-200 p-6 shadow-sm ${className}`}>
+    {children}
+  </div>
+);
 
-  const questions = [
-    {
-      question: "Berapakah hasil dari 7 × 8?",
-      options: ["54", "56", "58", "60"],
-      correctAnswer: 1
-    },
-    {
-      question: "Apa rumus luas segitiga?",
-      options: ["½ × alas × tinggi", "panjang × lebar", "π × r²", "sisi × sisi"],
-      correctAnswer: 0
-    },
-    {
-      question: "Berapakah nilai dari sin(90°)?",
-      options: ["0", "0.5", "1", "Tidak terdefinisi"],
-      correctAnswer: 2
-    }
-  ];
-
-  const handleAnswer = (selectedIndex: number) => {
-    if (selectedIndex === questions[currentQuestion].correctAnswer) {
-      setScore(score + 1);
-    }
-
-    const nextQuestion = currentQuestion + 1;
-    if (nextQuestion < questions.length) {
-      setCurrentQuestion(nextQuestion);
-    } else {
-      setShowScore(true);
-    }
-  };
-
-  const restartQuiz = () => {
-    setCurrentQuestion(0);
-    setScore(0);
-    setShowScore(false);
-  };
-
-  return (
-    <Card className="bg-secondary">
-      <CardHeader>
-        <CardTitle className="text-foreground">Kuis Matematika</CardTitle>
-        <CardDescription className="text-muted-foreground">
-          Uji pengetahuan matematika Anda!
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {showScore ? (
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-foreground mb-4">
-              Skor Anda: {score} dari {questions.length}
-            </h3>
-            <Button onClick={restartQuiz} className="bg-primary text-primary-foreground">
-              Main Lagi
-            </Button>
-          </div>
-        ) : (
-          <div>
-            <h3 className="text-lg font-semibold text-foreground mb-4">
-              {questions[currentQuestion].question}
-            </h3>
-            <div className="space-y-2">
-              {questions[currentQuestion].options.map((option, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="w-full justify-start text-foreground"
-                  onClick={() => handleAnswer(index)}
-                >
-                  {option}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
-
-// Komponen Pembayaran QRIS
-const PaymentModal = ({ 
-  isOpen, 
-  onClose, 
-  onSuccess,
-  planType 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  onSuccess: () => void;
-  planType: 'monthly' | 'yearly';
-}) => {
-  const price = planType === 'monthly' ? 10000 : 50000;
-  const period = planType === 'monthly' ? 'bulan' : 'tahun';
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-          onClick={onClose}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-background rounded-lg p-6 w-full max-w-md"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-2xl font-bold mb-4 text-foreground">
-              Langganan {planType === 'monthly' ? 'Bulanan' : 'Tahunan'}
-            </h2>
-            
-            <div className="text-center mb-6">
-              <p className="text-3xl font-bold text-primary">Rp{price.toLocaleString('id-ID')}</p>
-              <p className="text-muted-foreground">per {period}</p>
-            </div>
-
-            <div className="bg-muted p-4 rounded-lg mb-6 text-center">
-              <img 
-                src="https://placeholder-image-service.onrender.com/image/200x200?prompt=QRIS%20payment%20code%20with%20Indonesian%20payment%20logos&id=qris-payment-1" 
-                alt="QRIS payment code with Indonesian payment logos for digital transaction" 
-                className="mx-auto mb-4"
-                width={200}
-                height={200}
-              />
-              <p className="text-sm text-muted-foreground">
-                Scan QR code dengan aplikasi e-wallet atau mobile banking Anda
-              </p>
-            </div>
-
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Metode Pembayaran</span>
-                <span className="text-foreground">QRIS</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Total</span>
-                <span className="text-foreground font-semibold">Rp{price.toLocaleString('id-ID')}</span>
-              </div>
-            </div>
-
-            <div className="flex space-x-3">
-              <Button variant="outline" className="flex-1" onClick={onClose}>
-                Batal
-              </Button>
-              <Button className="flex-1 bg-primary text-primary-foreground" onClick={onSuccess}>
-                Sudah Bayar
-              </Button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
-
-// Komponen Utama
-const TreadSkoola = () => {
-  const [user, setUser] = useState<{ email: string; username: string; isPremium: boolean } | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
+// Main Component
+export default function TreadSkoola() {
+  const [user, setUser] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [bookmarkedArticles, setBookmarkedArticles] = useState<number[]>([]);
 
-  // Data artikel pembelajaran matematika dengan gambar
-  const articles = [
-    {
-      id: 1,
-      title: "Petualangan Menyelesaikan Persamaan Aljabar",
-      category: "Matematika Dasar - Aljabar",
-      excerpt: "Ikuti petualangan seru dalam memecahkan misteri persamaan linear dengan karakter kartun lucu...",
-      isPremium: false,
-      image: "https://placeholder-image-service.onrender.com/image/300x200?prompt=Colorful%20cartoon%20characters%20solving%20algebra%20equations%20on%20chalkboard&id=algebra-fun-1"
-    },
-    {
-      id: 2,
-      title: "Trigonometri: Seni Mengukur Segitiga",
-      category: "Matematika Menengah - Trigonometri",
-      excerpt: "Temukan keajaiban sinus, cosinus, dan tangen melalui ilustrasi menarik dan contoh nyata...",
-      isPremium: false,
-      image: "https://placeholder-image-service.onrender.com/image/300x200?prompt=Fun%20illustration%20of%20trigonometry%20concepts%20with%20cute%20triangle%20characters&id=trig-fun-1"
-    },
-    {
-      id: 3,
-      title: "Geometri Fraktal: Matematika Alam Semesta",
-      category: "Matematika Lanjutan - Geometri",
-      excerpt: "Jelajahi pola-pola indah dalam alam melalui matematika fraktal dengan visualisasi 3D yang memukau...",
-      isPremium: true,
-      image: "https://placeholder-image-service.onrender.com/image/300x200?prompt=Beautiful%20fractal%20patterns%20with%20mathematical%20equations%20floating%20around&id=fractal-math-1"
-    },
-    {
-      id: 4,
-      title: "Sejarah Matematika: Dari Batu Nisan ke Bilangan",
-      category: "Sejarah Matematika",
-      excerpt: "Perjalanan menarik perkembangan matematika dari zaman prasejarah hingga modern dengan ilustrasi timeline...",
-      isPremium: false,
-      image: "https://placeholder-image-service.onrender.com/image/300x200?prompt=Timeline%20of%20mathematical%20discoveries%20with%20ancient%20and%20modern%20symbols&id=math-history-1"
-    },
-    {
-      id: 5,
-      title: "Kalkulus: Bahasa Perubahan Alam",
-      category: "Matematika Tinggi - Kalkulus",
-      excerpt: "Pahami turunan dan integral melalui analogi menarik tentang pergerakan dan perubahan di alam...",
-      isPremium: true,
-      image: "https://placeholder-image-service.onrender.com/image/300x200?prompt=Calculus%20concepts%20illustrated%20with%20nature%20scenes%20and%20mathematical%20graphs&id=calculus-nature-1"
-    },
-    {
-      id: 6,
-      title: "Statistik: Membaca Cerita Data",
-      category: "Matematika Terapan - Statistik",
-      excerpt: "Belajar membaca dan menceritakan kisah melalui data dengan teknik statistik yang menyenangkan...",
-      isPremium: false,
-      image: "https://placeholder-image-service.onrender.com/image/300x200?prompt=Cute%20data%20characters%20telling%20stories%20through%20graphs%20and%20charts&id=stats-fun-1"
-    }
-  ];
-
-  const categories = [
-    'all', 'Matematika Dasar - Aljabar', 'Matematika Menengah - Trigonometri', 
-    'Matematika Lanjutan - Geometri', 'Matematika Tinggi - Kalkulus', 
-    'Matematika Terapan - Statistik', 'Sejarah Matematika', 'Jurnal Penelitian'
-  ];
-
-  const handleLogin = (email: string, password: string) => {
-    // Simulasi login berhasil
-    setUser({ email, username: email.split('@')[0], isPremium: false });
-    setShowAuthModal(false);
-  };
-
-  const handleRegister = (email: string, username: string, password: string) => {
-    // Simulasi registrasi berhasil
-    setUser({ email, username, isPremium: false });
-    setShowAuthModal(false);
+  const handleLogin = () => {
+    setUser({ username: 'Pengguna', email: 'user@example.com', isPremium: false });
   };
 
   const handleLogout = () => {
     setUser(null);
-    setBookmarkedArticles([]);
   };
-
-  const toggleBookmark = (articleId: number) => {
-    if (bookmarkedArticles.includes(articleId)) {
-      setBookmarkedArticles(bookmarkedArticles.filter(id => id !== articleId));
-    } else {
-      setBookmarkedArticles([...bookmarkedArticles, articleId]);
-    }
-  };
-
-  const handlePremiumPurchase = (planType: 'monthly' | 'yearly') => {
-    setSelectedPlan(planType);
-    setShowPaymentModal(true);
-  };
-
-  const handlePaymentSuccess = () => {
-    if (user) {
-      setUser({ ...user, isPremium: true });
-    }
-    setShowPaymentModal(false);
-  };
-
-  const filteredArticles = articles.filter(article => {
-    const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         article.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-gray-900 text-gray-100' : 'bg-background text-foreground'}`}>
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
       {/* Header */}
       <header className="bg-blue-600 text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <img 
-              src="https://placeholder-image-service.onrender.com/image/40x40?prompt=Cute%20blue%20owl%20mascot%20with%20glasses%20reading%20a%20math%20book&id=skoola-logo-1" 
-              alt="Tread Skoola mascot - cute blue owl with glasses reading math book" 
-              width={40}
-              height={40}
-              className="rounded-full"
-            />
-            <h1 className="text-2xl font-bold text-blue-100">Tread Skoola</h1>
+            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+              <span className="text-blue-600 font-bold">TS</span>
+            </div>
+            <h1 className="text-2xl font-bold">Tread Skoola</h1>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-4">
             {user ? (
               <>
-                <span className="text-sm">Halo, {user.username}</span>
-                <Button variant="outline" size="sm" className="text-white border-white hover:bg-blue-500" onClick={handleLogout}>
+                <span>Selamat datang, {user.username}! 🎓</span>
+                <Button variant="outline" onClick={handleLogout}>
                   Logout
                 </Button>
               </>
             ) : (
-              <Button variant="outline" size="sm" className="text-white border-white hover:bg-blue-500" onClick={() => setShowAuthModal(true)}>
+              <Button variant="outline" onClick={handleLogin}>
                 Login
               </Button>
             )}
@@ -512,43 +79,26 @@ const TreadSkoola = () => {
               onClick={() => setDarkMode(!darkMode)}
               className="p-2 rounded-full hover:bg-blue-700"
             >
-              {darkMode ? (
-                <img 
-                  src="https://placeholder-image-service.onrender.com/image/24x24?prompt=Sun%20icon%20with%20mathematical%20symbols%20for%20light%20mode&id=sun-math-icon-1" 
-                  alt="Sun icon with mathematical symbols for light mode" 
-                  width={24}
-                  height={24}
-                />
-              ) : (
-                <img 
-                  src="https://placeholder-image-service.onrender.com/image/24x24?prompt=Moon%20icon%20with%20numbers%20and%20stars%20for%20dark%20mode&id=moon-math-icon-1" 
-                  alt="Moon icon with numbers and stars for dark mode" 
-                  width={24}
-                  height={24}
-                />
-              )}
+              {darkMode ? '☀️' : '🌙'}
             </button>
           </div>
         </div>
       </header>
 
       {/* Navigation */}
-      <nav className="bg-blue-500 border-b border-blue-400">
+      <nav className="bg-blue-500 text-white">
         <div className="container mx-auto p-4">
-          <div className="flex flex-wrap gap-4 justify-center">
-            {['home', 'articles', 'categories', 'premium', 'profile'].map((tab) => (
+          <div className="flex gap-4">
+            {['home', 'articles', 'premium', 'profile'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`px-4 py-2 rounded-full capitalize ${
-                  activeTab === tab 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'text-foreground hover:bg-accent'
+                  activeTab === tab ? 'bg-white text-blue-600' : 'hover:bg-blue-600'
                 }`}
               >
                 {tab === 'home' ? 'Beranda' : 
                  tab === 'articles' ? 'Artikel' :
-                 tab === 'categories' ? 'Kategori' :
                  tab === 'premium' ? 'Premium' : 'Profil'}
               </button>
             ))}
@@ -558,325 +108,113 @@ const TreadSkoola = () => {
 
       {/* Main Content */}
       <main className="container mx-auto p-4">
-        {/* Search and Filter */}
-        <div className="mb-8 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Input
-              placeholder="Cari artikel atau buku..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
-            />
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2 rounded-md border border-input bg-background"
-            >
-              {categories.map(category => (
-                <option key={category} value={category}>
-                  {category === 'all' ? 'Semua Kategori' : category}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Content based on active tab */}
         {activeTab === 'home' && (
-          <div className="space-y-8">
-            <section>
-              <h2 className="text-2xl font-bold mb-6 text-foreground">Materi Populer</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredArticles.slice(0, 3).map(article => (
-                  <ArticleCard
-                    key={article.id}
-                    title={article.title}
-                    category={article.category}
-                    excerpt={article.excerpt}
-                    isPremium={article.isPremium}
-                    isBookmarked={bookmarkedArticles.includes(article.id)}
-                    onBookmark={() => toggleBookmark(article.id)}
-                    image={article.image}
-                  />
-                ))}
-              </div>
-            </section>
+          <div className="space-y-6">
+            <Card>
+              <h2 className="text-2xl font-bold mb-4">Selamat Datang di Tread Skoola</h2>
+              <p>Platform pembelajaran matematika interaktif untuk semua tingkat.</p>
+            </Card>
 
-            <section>
-              <h2 className="text-2xl font-bold mb-6 text-foreground">Fakta Matematika Hari Ini</h2>
-              <Card className="bg-blue-50 border-blue-200">
-                <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
-                  <img 
-                    src="https://placeholder-image-service.onrender.com/image/120x120?prompt=Cute%20math%20mascot%20holding%20a%20lightbulb%20with%20math%20symbols&id=math-fact-1" 
-                    alt="Cute math mascot sharing interesting fact about prime numbers" 
-                    width={120}
-                    height={120}
-                    className="flex-shrink-0"
-                  />
-                  <div>
-                    <p className="text-lg text-foreground">
-                      [FAKTA MATEMATIKA] Tahukah Anda? Bilangan prima terbesar yang diketahui memiliki lebih dari 24 juta digit!
-                      Ditemukan pada tahun 2018, bilangan ini adalah 2^82,589,933 − 1 dan membutuhkan 9MB untuk menyimpannya!
-                    </p>
-                  </div>
-                </CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <h3 className="text-xl font-semibold mb-3">Materi Populer</h3>
+                <p>Jelajahi berbagai materi matematika yang menarik.</p>
               </Card>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-bold mb-6 text-foreground">Jurnal Penelitian Terbaru</h2>
-              <Card className="bg-gradient-to-r from-blue-100 to-indigo-100 border-blue-200">
-                <CardHeader>
-                  <CardTitle className="text-foreground">Penerapan Matematika dalam AI Modern</CardTitle>
-                  <CardDescription className="text-blue-600">Jurnal Matematika Terapan Vol. 45, No. 3</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-foreground mb-4">
-                    Penelitian terbaru menunjukkan bagaimana konsep aljabar linear dan kalkulus multivariabel 
-                    menjadi dasar perkembangan kecerdasan buatan. Baca hasil penelitian lengkapnya...
-                  </p>
-                  <div className="flex items-center gap-4">
-                    <img 
-                      src="https://placeholder-image-service.onrender.com/image/80x80?prompt=Scientific%20journal%20cover%20with%20mathematical%20formulas%20and%20AI%20symbols&id=journal-cover-1" 
-                      alt="Journal cover featuring mathematical formulas and AI concepts" 
-                      width={80}
-                      height={80}
-                      className="rounded border"
-                    />
-                    <Button variant="outline" className="border-blue-300 text-blue-600">
-                      Unduh Jurnal (PDF)
-                    </Button>
-                  </div>
-                </CardContent>
+              
+              <Card>
+                <h3 className="text-xl font-semibold mb-3">Kuis Interaktif</h3>
+                <p>Uji pengetahuan matematika Anda dengan kuis menyenangkan.</p>
               </Card>
-            </section>
+            </div>
           </div>
         )}
 
         {activeTab === 'articles' && (
           <div>
-            <h2 className="text-2xl font-bold mb-6 text-foreground">Semua Materi Pembelajaran</h2>
+            <h2 className="text-2xl font-bold mb-6">Artikel Pembelajaran</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredArticles.map(article => (
-                <ArticleCard
-                  key={article.id}
-                  title={article.title}
-                  category={article.category}
-                  excerpt={article.excerpt}
-                  isPremium={article.isPremium}
-                  isBookmarked={bookmarkedArticles.includes(article.id)}
-                  onBookmark={() => toggleBookmark(article.id)}
-                  image={article.image}
-                />
-              ))}
+              <Card>
+                <h3 className="font-semibold mb-2">Dasar-dasar Aljabar</h3>
+                <p className="text-sm text-gray-600 mb-4">Pelajari konsep dasar aljabar dengan pendekatan mudah.</p>
+                <Button>Baca Selengkapnya</Button>
+              </Card>
+              
+              <Card>
+                <h3 className="font-semibold mb-2">Geometri Modern</h3>
+                <p className="text-sm text-gray-600 mb-4">Eksplorasi bentuk dan ruang dalam matematika.</p>
+                <Button>Baca Selengkapnya</Button>
+              </Card>
+              
+              <Card>
+                <h3 className="font-semibold mb-2">Trigonometri Praktis</h3>
+                <p className="text-sm text-gray-600 mb-4">Aplikasi trigonometri dalam kehidupan sehari-hari.</p>
+                <Button>Baca Selengkapnya</Button>
+              </Card>
             </div>
           </div>
         )}
 
         {activeTab === 'premium' && (
-          <div className="space-y-8">
-            {!user?.isPremium ? (
-              <section>
-                <h2 className="text-2xl font-bold mb-6 text-foreground">Upgrade ke Premium</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card className="text-center">
-                    <CardHeader>
-                      <CardTitle className="text-foreground">Paket Bulanan</CardTitle>
-                      <CardDescription className="text-muted-foreground">
-                        Cocok untuk mencoba fitur premium
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-3xl font-bold text-primary">Rp10.000</p>
-                      <p className="text-sm text-muted-foreground">per bulan</p>
-                      <ul className="mt-4 space-y-2 text-sm text-foreground text-left">
-                        <li>Akses semua artikel premium</li>
-                        <li>Game edukasi interaktif</li>
-                        <li>Forum diskusi</li>
-                        <li>Ringkasan otomatis</li>
-                      </ul>
-                    </CardContent>
-                    <CardFooter>
-                      <Button 
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={() => handlePremiumPurchase('monthly')}
-              >
-                Berlangganan
-              </Button>
-                    </CardFooter>
-                  </Card>
+          <div className="space-y-6">
+            <Card>
+              <h2 className="text-2xl font-bold mb-4">Upgrade ke Premium</h2>
+              <p>Dapatkan akses ke semua fitur premium dengan berlangganan.</p>
+            </Card>
 
-                  <Card className="text-center border-2 border-primary">
-                    <CardHeader>
-                      <CardTitle className="text-foreground">Paket Tahunan</CardTitle>
-                      <CardDescription className="text-muted-foreground">
-                        Hemat 58% dengan komitmen tahunan
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-3xl font-bold text-primary">Rp50.000</p>
-                      <p className="text-sm text-muted-foreground">per tahun</p>
-                      <ul className="mt-4 space-y-2 text-sm text-foreground text-left">
-                        <li>Semua fitur paket bulanan</li>
-                        <li>Diskon 58%</li>
-                        <li>Prioritas dukungan</li>
-                        <li>Akses konten eksklusif</li>
-                      </ul>
-                    </CardContent>
-                    <CardFooter>
-                      <Button 
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={() => handlePremiumPurchase('yearly')}
-              >
-                Berlangganan
-              </Button>
-                    </CardFooter>
-                  </Card>
-                </div>
-              </section>
-            ) : (
-              <section>
-                <h2 className="text-2xl font-bold mb-6 text-foreground">Fitur Premium</h2>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Game Kuis */}
-                  <div>
-                    <h3 className="text-xl font-semibold mb-4 text-foreground">Game Edukasi</h3>
-                    <QuizGame />
-                  </div>
-
-                  {/* Forum Diskusi */}
-                  <div>
-                    <h3 className="text-xl font-semibold mb-4 text-foreground">Forum Diskusi</h3>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-foreground">Diskusi Terbaru</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="border-b border-border pb-4">
-                            <h4 className="font-semibold text-foreground">Cara terbaik belajar kalkulus?</h4>
-                            <p className="text-sm text-muted-foreground">15 komentar • 2 jam lalu</p>
-                          </div>
-                          <div className="border-b border-border pb-4">
-                            <h4 className="font-semibold text-foreground">Tips memahami trigonometri</h4>
-                            <p className="text-sm text-muted-foreground">8 komentar • 5 jam lalu</p>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-foreground">Referensi buku aljabar linear</h4>
-                            <p className="text-sm text-muted-foreground">12 komentar • 1 hari lalu</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button variant="outline" className="w-full">
-                          Lihat Semua Diskusi
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </div>
-                </div>
-
-                {/* Ringkasan Otomatis */}
-                <section className="mt-8">
-                  <h3 className="text-xl font-semibold mb-4 text-foreground">Ringkasan Otomatis</h3>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-foreground">Ringkasan "Pemahaman Dasar Aljabar"</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-foreground">
-                        Aljabar adalah cabang matematika yang mempelajari struktur, hubungan, dan kuantitas.
-                        Artikel ini membahas konsep dasar variabel, konstanta, koefisien, dan persamaan linear.
-                        Variabel mewakili nilai yang tidak diketahui, sedangkan konstanta adalah nilai tetap.
-                        Penyelesaian persamaan melibatkan isolasi variabel menggunakan operasi matematika.
-                      </p>
-                    </CardContent>
-                  </Card>
-                </section>
-              </section>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <h3 className="text-xl font-semibold mb-3">Paket Bulanan</h3>
+                <p className="text-2xl font-bold text-blue-600">Rp 10.000</p>
+                <ul className="mt-4 space-y-2">
+                  <li>✓ Akses semua artikel premium</li>
+                  <li>✓ Kuis interaktif</li>
+                  <li>✓ Forum diskusi</li>
+                </ul>
+                <Button className="w-full mt-4">Berlangganan</Button>
+              </Card>
+              
+              <Card>
+                <h3 className="text-xl font-semibold mb-3">Paket Tahunan</h3>
+                <p className="text-2xl font-bold text-blue-600">Rp 100.000</p>
+                <p className="text-sm text-gray-600">Hemat 17%</p>
+                <ul className="mt-4 space-y-2">
+                  <li>✓ Semua fitur bulanan</li>
+                  <li>✓ Konten eksklusif</li>
+                  <li>✓ Prioritas support</li>
+                </ul>
+                <Button className="w-full mt-4">Berlangganan</Button>
+              </Card>
+            </div>
           </div>
         )}
 
         {activeTab === 'profile' && user && (
-          <div>
-            <h2 className="text-2xl font-bold mb-6 text-foreground">Profil Pengguna</h2>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-foreground">Informasi Profil</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label className="text-muted-foreground">Username</Label>
-                  <p className="text-foreground">{user.username}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Email</Label>
-                  <p className="text-foreground">{user.email}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Status Langganan</Label>
-                  <p className="text-foreground">
-                    {user.isPremium ? (
-                      <span className="text-green-600">Premium</span>
-                    ) : (
-                      <span className="text-muted-foreground">Gratis</span>
-                    )}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {bookmarkedArticles.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-xl font-semibold mb-4 text-foreground">Artikel Tersimpan</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {articles
-                    .filter(article => bookmarkedArticles.includes(article.id))
-                    .map(article => (
-                      <ArticleCard
-                        key={article.id}
-                        title={article.title}
-                        category={article.category}
-                        excerpt={article.excerpt}
-                        isPremium={article.isPremium}
-                        isBookmarked={true}
-                        onBookmark={() => toggleBookmark(article.id)}
-                      />
-                    ))}
-                </div>
+          <Card>
+            <h2 className="text-2xl font-bold mb-4">Profil Pengguna</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Username</label>
+                <p className="font-semibold">{user.username}</p>
               </div>
-            )}
-          </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Email</label>
+                <p className="font-semibold">{user.email}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Status</label>
+                <p className="font-semibold">{user.isPremium ? 'Premium' : 'Gratis'}</p>
+              </div>
+            </div>
+          </Card>
         )}
       </main>
 
       {/* Footer */}
-      <footer className="bg-secondary border-t border-border mt-12 p-8">
+      <footer className="bg-blue-600 text-white p-8 mt-12">
         <div className="container mx-auto text-center">
-          <p className="text-muted-foreground">
-            &copy; {new Date().getFullYear()} EduRead. Semua hak dilindungi.
-          </p>
+          <p>&copy; 2024 Tread Skoola. Semua hak dilindungi.</p>
         </div>
       </footer>
-
-      {/* Modals */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onLogin={handleLogin}
-        onRegister={handleRegister}
-      />
-
-      <PaymentModal
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        onSuccess={handlePaymentSuccess}
-        planType={selectedPlan}
-      />
     </div>
   );
-};
-
-export default TreadSkoola;
+}
