@@ -1,220 +1,847 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
-// Simple UI Components
-const Button = ({ children, onClick, variant = 'primary', className = '' }: any) => {
-  const baseStyle = 'px-4 py-2 rounded-md font-medium transition-colors';
-  const variants = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
-    outline: 'border border-gray-300 bg-white hover:bg-gray-50'
-  };
-  
-  return (
-    <button 
-      className={`${baseStyle} ${variants[variant]} ${className}`}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  );
+// Jalur import telah diperbaiki ke alias yang umum. 
+// Pastikan alias '@/components/ui' sudah dikonfigurasi di proyek Anda.
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+// =================================================================
+// START: MOCK DATA
+// =================================================================
+
+const MOCK_ARTICLES = [
+    // Aljabar (10 articles)
+    { id: 1, title: "Dasar-Dasar Aljabar: Memahami Variabel dan Persamaan", content: "Aljabar adalah fondasi matematika yang mempelajari hubungan antara simbol-simbol dan aturan untuk memanipulasi simbol-simbol tersebut. Dalam aljabar dasar, kita mengenal konsep variabel yang mewakili nilai yang belum diketahui. Variabel biasanya dilambangkan dengan huruf seperti x, y, atau z. Persamaan aljabar terdiri dari dua ekspresi yang dihubungkan dengan tanda sama dengan. Contoh sederhana: 2x + 3 = 7. Untuk menyelesaikan persamaan ini, kita mencari nilai x yang memenuhi persamaan tersebut. Proses ini melibatkan operasi matematika dasar seperti penjumlahan, pengurangan, perkalian, dan pembagian yang diterapkan pada kedua sisi persamaan untuk menjaga keseimbangan. Aljabar memungkinkan kita untuk memodelkan situasi dunia nyata dan memecahkan masalah yang kompleks dengan cara yang sistematis. Keterampilan aljabar sangat penting untuk memahami matematika tingkat lanjut dan aplikasinya dalam sains, teknologi, dan kehidupan sehari-hari.", category: "Aljabar", tags: ["variabel", "persamaan", "matematika dasar", "ekspresi aljabar"], isPremium: false, journalLink: "https://jurnal-matematika.edu/aljabar-dasar-2023", readTime: "8 min", author: "Dr. Ahmad Santoso" },
+{ id: 2, title: "Sistem Persamaan Linear: Metode Eliminasi dan Substitusi", content: "Sistem persamaan linear terdiri dari dua atau lebih persamaan linear yang memiliki variabel-variabel yang sama. Tujuannya adalah mencari nilai variabel yang memenuhi semua persamaan dalam sistem tersebut. Metode eliminasi melibatkan penambahan atau pengurangan persamaan untuk menghilangkan salah satu variabel. Misalnya, untuk sistem: 2x + 3y = 7 dan 3x - 2y = 4, kita dapat mengalikan persamaan pertama dengan 2 dan persamaan kedua dengan 3 untuk membuat koefisien y sama. Metode substitusi melibatkan penyelesaian satu persamaan untuk satu variabel dan mensubstitusikan hasilnya ke persamaan lain. Kedua metode ini sangat efektif untuk menyelesaikan masalah yang melibatkan hubungan linear antara variabel. Pemahaman sistem persamaan linear sangat penting dalam berbagai bidang seperti ekonomi untuk analisis supply-demand, teknik untuk perhitungan rangkaian listrik, dan ilmu komputer untuk algoritma optimasi.", category: "Aljabar", tags: ["sistem persamaan", "eliminasi", "substitusi", "linear"], isPremium: false, journalLink: "https://jurnal-matematika.edu/sistem-persamaan-2023", readTime: "10 min", author: "Prof. Budi Raharjo" },
+    { id: 3, title: "Fungsi Kuadrat dan Aplikasinya dalam Kehidupan", content: "Fungsi kuadrat adalah fungsi polinomial derajat dua dengan bentuk umum f(x) = ax² + bx + c, di mana a, b, dan c adalah konstanta dengan a ≠ 0. Grafik fungsi kuadrat berbentuk parabola yang dapat terbuka ke atas (jika a > 0) atau ke bawah (jika a < 0). Titik puncak parabola dapat ditemukan menggunakan rumus x = -b/2a. Fungsi kuadrat memiliki banyak aplikasi dalam kehidupan nyata, termasuk dalam fisika untuk menghitung gerak parabola, dalam ekonomi untuk memodelkan keuntungan maksimum, dan dalam teknik untuk mendesain struktur melengkung. Contoh konkret: ketika melempar bola, lintasan bola mengikuti pola parabola yang dapat dimodelkan dengan fungsi kuadrat. Pemahaman fungsi kuadrat juga penting untuk menyelesaikan persamaan kuadrat menggunakan berbagai metode seperti faktorisasi, melengkapkan kuadrat, atau rumus kuadrat.", category: "Aljabar", tags: ["fungsi kuadrat", "parabola", "aplikasi matematika", "persamaan kuadrat"], isPremium: true, journalLink: "https://jurnal-matematika.edu/fungsi-kuadrat-2023", readTime: "12 min", author: "Dr. Citra Wijaya" },
+    { id: 4, title: "Logaritma: Konsep dan Penggunaan dalam Sains", content: "Logaritma adalah operasi matematika yang merupakan kebalikan dari eksponensial. Jika a^b = c, maka logaritma basis a dari c adalah b, ditulis sebagai logₐ(c) = b. Logaritma umum (basis 10) dan logaritma natural (basis e) paling sering digunakan. Sifat-sifat logaritma seperti log(ab) = log(a) + log(b) dan log(a/b) = log(a) - log(b) membuat perhitungan kompleks menjadi lebih sederhana. Dalam sains, logaritma digunakan untuk mengukur tingkat kebisingan (desibel), kekuatan gempa (skala Richter), dan keasaman (pH). Dalam matematika keuangan, logaritma digunakan untuk menghitung bunga majemuk dan pertumbuhan eksponensial. Pemahaman logaritma juga penting dalam ilmu komputer untuk analisis kompleksitas algoritma dan dalam statistik untuk transformasi data yang tidak normal.", category: "Aljabar", tags: ["logaritma", "eksponensial", "sains", "aplikasi"], isPremium: true, journalLink: "https://jurnal-matematika.edu/logaritma-2023", readTime: "9 min", author: "Dr. Dian Pratama" },
+    { id: 5, title: "Barisan dan Deret: Aritmatika vs Geometri", content: "Barisan adalah daftar bilangan yang disusun menurut pola tertentu, sedangkan deret adalah jumlah dari suku-suku dalam barisan. Barisan aritmatika memiliki beda yang tetap antara suku-suku berurutan, dengan rumus suku ke-n: Uₙ = a + (n-1)d, dimana a adalah suku pertama dan d adalah beda. Deret aritmatika memiliki rumus jumlah n suku pertama: Sₙ = n/2 × (2a + (n-1)d). Barisan geometri memiliki rasio tetap antara suku-suku berurutan, dengan rumus suku ke-n: Uₙ = a × r^(n-1), dimana r adalah rasio. Deret geometri memiliki rumus jumlah n suku pertama: Sₙ = a(1-rⁿ)/(1-r) untuk r ≠ 1. Aplikasi barisan dan deret termasuk dalam perhitungan bunga majemuk, pertumbuhan populasi, dan analisis algoritma komputer. Pemahaman konsep ini sangat penting untuk matematika keuangan dan analisis data.", category: "Aljabar", tags: ["barisan", "deret", "aritmatika", "geometri"], isPremium: false, journalLink: "https://jurnal-matematika.edu/barisan-deret-2023", readTime: "11 min", author: "Prof. Eko Sulistyo" },
+    { id: 6, title: "Matriks: Operasi Dasar dan Aplikasi", content: "Matriks adalah susunan bilangan dalam bentuk baris dan kolom yang diapit oleh kurung. Operasi dasar matriks meliputi penjumlahan, pengurangan, perkalian skalar, dan perkalian matriks. Penjumlahan dan pengurangan matriks hanya dapat dilakukan jika matriks memiliki ordo yang sama. Perkalian matriks memiliki syarat khusus: jumlah kolom matriks pertama harus sama dengan jumlah baris matriks kedua. Determinan dan invers matriks adalah konsep penting dalam aljabar linear. Determinan memberikan informasi tentang sifat matriks, sedangkan invers matriks digunakan untuk menyelesaikan sistem persamaan linear. Aplikasi matriks sangat luas, termasuk dalam grafik komputer untuk transformasi geometri, dalam ekonomi untuk analisis input-output, dalam fisika untuk mekanika kuantum, dan dalam statistik untuk analisis multivariat. Pemahaman matriks merupakan fondasi untuk mempelajari aljabar linear dan berbagai aplikasinya.", category: "Aljabar", tags: ["matriks", "determinan", "invers", "aljabar linear"], isPremium: true, journalLink: "https://jurnal-matematika.edu/matriks-2023", readTime: "13 min", author: "Dr. Fitri Handayani" },
+    { id: 7, title: "Inequality: Memahami Pertidaksamaan Linear dan Kuadrat", content: "Pertidaksamaan (inequality) adalah pernyataan matematika yang menyatakan bahwa satu ekspresi tidak sama dengan ekspresi lainnya, menggunakan simbol seperti <, >, ≤, atau ≥. Pertidaksamaan linear memiliki bentuk ax + b < c atau variasi lainnya. Penyelesaian pertidaksamaan linear mirip dengan persamaan, tetapi dengan perhatian khusus pada aturan pembalikan tanda ketika mengalikan atau membagi dengan bilangan negatif. Pertidaksamaan kuadrat melibatkan ekspresi kuadrat dan biasanya diselesaikan dengan mencari akar-akar persamaan kuadrat terkait dan menguji interval. Aplikasi pertidaksamaan termasuk dalam optimasi (pemrograman linear), analisis ekonomi (batasan anggaran), dan fisika (batasan fisikal). Pemahaman pertidaksamaan sangat penting untuk pemodelan masalah dunia nyata dimana terdapat batasan atau constraint.", category: "Aljabar", tags: ["pertidaksamaan", "linear", "kuadrat", "optimasi"], isPremium: false, journalLink: "https://jurnal-matematika.edu/inequality-2023", readTime: "8 min", author: "Prof. Guntur Wibowo" },
+    { id: 8, title: "Eksponen: Sifat dan Aplikasi dalam Pertumbuhan", content: "Eksponen menunjukkan berapa kali suatu bilangan (basis) dikalikan dengan dirinya sendiri. Sifat-sifat eksponen termasuk: aᵐ × aⁿ = aᵐ⁺ⁿ, (aᵐ)ⁿ = aᵐⁿ, dan a⁻ᵐ = 1/aᵐ. Eksponen sangat penting dalam memodelkan pertumbuhan eksponensial dan peluruhan, seperti pertumbuhan populasi, penyebaran penyakit, peluruhan radioaktif, dan bunga majemuk. Fungsi eksponensial f(x) = aˣ memiliki kurva yang meningkat sangat cepat untuk a > 1. Bilangan e (sekitar 2.71828) adalah basis eksponensial alami yang muncul dalam banyak fenomena alam dan matematika. Aplikasi eksponen termasuk dalam perhitungan bunga bank, prediksi pertumbuhan ekonomi, model epidemiologi, dan analisis algoritma komputer. Pemahaman eksponen sangat penting untuk sains, teknik, dan ekonomi.", category: "Aljabar", tags: ["eksponen", "pertumbuhan", "bilangan e", "aplikasi"], isPremium: false, journalLink: "https://jurnal-matematika.edu/eksponen-2023", readTime: "9 min", author: "Dr. Hana Setiawan" },
+    { id: 9, title: "Polinomial: Faktorisasi dan Akar-Akar", content: "Polinomial adalah ekspresi aljabar yang terdiri dari variabel dan koefisien, yang melibatkan hanya operasi penjumlahan, pengurangan, perkalian, dan eksponen bilangan bulat non-negatif. Derajat polinomial ditentukan oleh pangkat tertinggi variabel. Faktorisasi polinomial adalah proses menguraikan polinomial menjadi produk dari polinomial yang lebih sederhana. Teorema faktor menyatakan bahwa jika (x - c) adalah faktor dari polinomial P(x), maka P(c) = 0. Akar-akar polinomial adalah nilai-nilai x yang membuat P(x) = 0. Untuk polinomial kuadrat, akar-akar dapat ditemukan menggunakan rumus kuadrat. Polinomial derajat lebih tinggi dapat diselesaikan dengan berbagai metode termasuk faktorisasi, sintetik division, atau metode numerik. Aplikasi polinomial termasuk dalam interpolasi data, analisis kurva, dan pemodelan fenomena fisika.", category: "Aljabar", tags: ["polinomial", "faktorisasi", "akar", "derajat"], isPremium: true, journalLink: "https://jurnal-matematika.edu/polinomial-2023", readTime: "11 min", author: "Prof. Indra Kusuma" },
+    { id: 10, title: "System of Inequalities: Pemrograman Linear Dasar", content: "Sistem pertidaksamaan linear melibatkan dua atau lebih pertidaksamaan linear dengan variabel yang sama. Penyelesaian sistem ini adalah himpunan semua titik yang memenuhi semua pertidaksamaan secara simultan, yang membentuk daerah feasible (layak) dalam bidang koordinat. Dalam pemrograman linear, kita mencari nilai maksimum atau minimum dari fungsi objektif linear subject to kendala yang berupa sistem pertidaksamaan linear. Metode grafis dapat digunakan untuk sistem dengan dua variabel, sedangkan metode simplex digunakan untuk sistem dengan lebih banyak variabel. Aplikasi pemrograman linear termasuk dalam optimasi produksi, distribusi sumber daya, penjadwalan, dan perencanaan keuangan. Pemahaman sistem pertidaksamaan sangat penting untuk operations research, ekonomi, dan manajemen.", category: "Aljabar", tags: ["sistem pertidaksamaan", "pemrograman linear", "optimasi", "feasible region"], isPremium: true, journalLink: "https://jurnal-matematika.edu/linear-programming-2023", readTime: "12 min", author: "Dr. Joko Widodo" },
+    
+    // Geometri (10 articles)
+    { id: 11, title: "Teorema Pythagoras: Sejarah dan Aplikasi Modern", content: "Teorema Pythagoras adalah salah satu teorema paling terkenal dalam matematika, menyatakan bahwa dalam segitiga siku-siku, kuadrat sisi miring sama dengan jumlah kuadrat kedua sisi lainnya (a² + b² = c²). Teorema ini berasal dari matematikawan Yunani kuno Pythagoras sekitar abad ke-6 SM, meskipun bukti menunjukkan bahwa peradaban Babilonia dan Mesir kuno mungkin telah mengetahuinya lebih dulu. Aplikasi modern teorema Pythagoras sangat luas: dalam konstruksi untuk memastikan sudut siku-siku, dalam navigasi untuk menghitung jarak terpendek, dalam komputer grafis untuk menghitung jarak antara titik, dalam fisika untuk analisis vektor, dan dalam statistika untuk menghitung error. Teorema ini juga menjadi dasar untuk trigonometri dan geometri analitik. Pemahaman teorema Pythagoras penting untuk berbagai bidang sains dan teknik.", category: "Geometri", tags: ["pythagoras", "segitiga siku-siku", "sejarah", "aplikasi"], isPremium: false, journalLink: "https://jurnal-matematika.edu/pythagoras-history-2023", readTime: "10 min", author: "Dr. Kurniawan Budi" },
+    // ... (sisa artikel disingkat)
+];
+const MOCK_FACTS = [
+    "Tahukah kamu bahwa angka nol pertama kali digunakan oleh matematikawan India pada abad ke-5?",
+    "Matematikawan Yunani kuno Euclid disebut sebagai 'Bapak Geometri'",
+    "Konstanta matematika π (pi) telah dihitung hingga 31.4 triliun digit",
+    "Teorema Terakhir Fermat membutuhkan 358 tahun untuk dibuktikan",
+    "Terdapat 17 wallpaper groups yang mungkin dalam simetri bidang",
+    "Fraktal adalah bentuk geometri yang terlihat sama pada berbagai tingkat pembesaran",
+    "Matematika adalah satu-satunya bahasa yang dimengerti oleh semua budaya di dunia",
+    "Simbol sama dengan (=) diperkenalkan pada tahun 1557 oleh Robert Recorde",
+    "Himpunan Mandelbrot adalah salah satu fraktal paling terkenal dalam matematika",
+    "Teori chaos mempelajari sistem yang sangat sensitif terhadap kondisi awal"
+];
+
+const CATEGORIES = [
+    "Aljabar", "Geometri", "Kalkulus", "Statistika", "Trigonometri", "Aritmatika"
+];
+
+// =================================================================
+// END: MOCK DATA
+// =================================================================
+// =================================================================
+// START: KOMPONEN PEMBANTU (ArticleCard)
+// =================================================================
+
+const ArticleCard = ({ article, onAddToList, onToggleBookmark, isBookmarked, isPremiumUser }) => {
+    const [showFullContent, setShowFullContent] = useState(false);
+    
+    const canViewContent = !article.isPremium || isPremiumUser;
+    
+    const displayText = canViewContent || showFullContent
+        ? article.content 
+        : article.content.substring(0, 100) + "...";
+
+    return (
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            whileHover={{ scale: 1.02 }}
+        >
+            <Card className="h-full flex flex-col border-2 border-blue-100 hover:border-blue-300 transition-colors">
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-lg">{article.title}</CardTitle>
+                <button 
+                  onClick={() => onToggleBookmark(article.id)}
+                  className="text-muted-foreground hover:text-primary"
+                  aria-label={isBookmarked ? "Hapus bookmark" : "Tambahkan bookmark"}
+                >
+                  {isBookmarked ? (
+                    <img 
+                      src="https://placeholder-image-service.onrender.com/image/20x20?prompt=cute%20filled%20bookmark%20icon%20with%20smile&id=8f9a0b1c-2d3e-9f0a-4c5d-6e7f8a9b0c1d" 
+                      alt="Bookmark active" 
+                      className="w-5 h-5"
+                    />
+                  ) : (
+                    <img 
+                      src="https://placeholder-image-service.onrender.com/image/20x20?prompt=cute%20outline%20bookmark%20icon&id=9f0a1b2c-3d4e-0f1a-5c6d-7e8f9a0b1c2d" 
+                      alt="Bookmark inactive" 
+                      className="w-5 h-5"
+                    />
+                  )}
+                </button>
+              </div>
+              <CardDescription>
+                <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                  {article.category}
+                </span>
+                {article.isPremium && (
+                  <span className="inline-block ml-2 px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded-full flex items-center">
+                    <img 
+                      src="https://placeholder-image-service.onrender.com/image/12x12?prompt=premium%20star%20icon&id=premiumstar123" 
+                      alt="Premium star" 
+                      className="w-3 h-3 mr-1"
+                    />
+                    Premium
+                  </span>
+                )}
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="flex-grow">
+              <img 
+                src={`https://placeholder-image-service.onrender.com/image/300x200?prompt=educational%20content%20about%20${article.category}&id=${article.id}a1b2c3d4-e5f6-7890-abcd-ef1234567890`} 
+                alt={`Ilustrasi untuk artikel tentang ${article.title}`}
+                className="w-full h-48 object-cover rounded-md mb-3"
+              />
+              
+              <p className="text-sm">
+                {displayText}
+              </p>
+              
+              {article.isPremium && !isPremiumUser && !showFullContent && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Upgrade ke premium untuk membaca selengkapnya
+                </p>
+              )}
+            </CardContent>
+            
+            <CardFooter className="flex justify-between">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => onAddToList(article)}
+              >
+                Tambahkan ke Daftar
+              </Button>
+              
+              {(isPremiumUser || !article.isPremium) && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowFullContent(!showFullContent)}
+                >
+                  {showFullContent ? "Sembunyikan" : "Baca Selengkapnya"}
+                </Button>
+              )}
+            </CardFooter>
+          </Card>
+        </motion.div>
+    );
 };
 
-const Input = ({ value, onChange, placeholder, type = 'text', className = '' }: any) => (
-  <input
-    type={type}
-    value={value}
-    onChange={onChange}
-    placeholder={placeholder}
-    className={`px-3 py-2 border border-gray-300 rounded-md ${className}`}
-  />
-);
+// =================================================================
+// START: KOMPONEN MODAL
+// =================================================================
 
-const Card = ({ children, className = '' }: any) => (
-  <div className={`bg-white rounded-lg border border-gray-200 p-6 shadow-sm ${className}`}>
-    {children}
-  </div>
-);
-
-// Main Component
-export default function TreadSkoola() {
-  const [user, setUser] = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
-  const [activeTab, setActiveTab] = useState('home');
-
-  const handleLogin = () => {
-    setUser({ username: 'Pengguna', email: 'user@example.com', isPremium: false });
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-  };
-
-  return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Header */}
-      <header className="bg-blue-600 text-white p-4">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-              <span className="text-blue-600 font-bold">TS</span>
-            </div>
-            <h1 className="text-2xl font-bold">Tread Skoola</h1>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            {user ? (
-              <>
-                <span>Selamat datang, {user.username}! 🎓</span>
-                <Button variant="outline" onClick={handleLogout}>
-                  Logout
-                </Button>
-              </>
-            ) : (
-              <Button variant="outline" onClick={handleLogin}>
-                Login
-              </Button>
-            )}
+const LoginModal = ({ onClose, onLogin, onSwitchToRegister }) => {
+    // Perbaikan: Mengatur default value agar mudah diuji (user@premium.com untuk testing premium)
+    const [email, setEmail] = useState("pengguna@premium.com"); 
+    const [password, setPassword] = useState("password123");
+    
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onLogin(email, password);
+    };
+    
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-background p-6 rounded-lg shadow-lg w-full max-w-md"
+          >
+            <h2 className="text-2xl font-bold mb-4">Login</h2>
             
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-full hover:bg-blue-700"
-            >
-              {darkMode ? '☀️' : '🌙'}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-blue-500 text-white">
-        <div className="container mx-auto p-4">
-          <div className="flex gap-4">
-            {['home', 'articles', 'premium', 'profile'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-full capitalize ${
-                  activeTab === tab ? 'bg-white text-blue-600' : 'hover:bg-blue-600'
-                }`}
-              >
-                {tab === 'home' ? 'Beranda' : 
-                 tab === 'articles' ? 'Artikel' :
-                 tab === 'premium' ? 'Premium' : 'Profil'}
-              </button>
-            ))}
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="container mx-auto p-4">
-        {activeTab === 'home' && (
-          <div className="space-y-6">
-            <Card>
-              <h2 className="text-2xl font-bold mb-4">Selamat Datang di Tread Skoola</h2>
-              <p>Platform pembelajaran matematika interaktif untuk semua tingkat.</p>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <h3 className="text-xl font-semibold mb-3">Materi Populer</h3>
-                <p>Jelajahi berbagai materi matematika yang menarik.</p>
-              </Card>
-              
-              <Card>
-                <h3 className="text-xl font-semibold mb-3">Kuis Interaktif</h3>
-                <p>Uji pengetahuan matematika Anda dengan kuis menyenangkan.</p>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'articles' && (
-          <div>
-            <h2 className="text-2xl font-bold mb-6">Artikel Pembelajaran</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card>
-                <h3 className="font-semibold mb-2">Dasar-dasar Aljabar</h3>
-                <p className="text-sm text-gray-600 mb-4">Pelajari konsep dasar aljabar dengan pendekatan mudah.</p>
-                <Button>Baca Selengkapnya</Button>
-              </Card>
-              
-              <Card>
-                <h3 className="font-semibold mb-2">Geometri Modern</h3>
-                <p className="text-sm text-gray-600 mb-4">Eksplorasi bentuk dan ruang dalam matematika.</p>
-                <Button>Baca Selengkapnya</Button>
-              </Card>
-              
-              <Card>
-                <h3 className="font-semibold mb-2">Trigonometri Praktis</h3>
-                <p className="text-sm text-gray-600 mb-4">Aplikasi trigonometri dalam kehidupan sehari-hari.</p>
-                <Button>Baca Selengkapnya</Button>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'premium' && (
-          <div className="space-y-6">
-            <Card>
-              <h2 className="text-2xl font-bold mb-4">Upgrade ke Premium</h2>
-              <p>Dapatkan akses ke semua fitur premium dengan berlangganan.</p>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <h3 className="text-xl font-semibold mb-3">Paket Bulanan</h3>
-                <p className="text-2xl font-bold text-blue-600">Rp 10.000</p>
-                <ul className="mt-4 space-y-2">
-                  <li>✓ Akses semua artikel premium</li>
-                  <li>✓ Kuis interaktif</li>
-                  <li>✓ Forum diskusi</li>
-                </ul>
-                <Button className="w-full mt-4">Berlangganan</Button>
-              </Card>
-              
-              <Card>
-                <h3 className="text-xl font-semibold mb-3">Paket Tahunan</h3>
-                <p className="text-2xl font-bold text-blue-600">Rp 100.000</p>
-                <p className="text-sm text-gray-600">Hemat 17%</p>
-                <ul className="mt-4 space-y-2">
-                  <li>✓ Semua fitur bulanan</li>
-                  <li>✓ Konten eksklusif</li>
-                  <li>✓ Prioritas support</li>
-                </ul>
-                <Button className="w-full mt-4">Berlangganan</Button>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'profile' && user && (
-          <Card>
-            <h2 className="text-2xl font-bold mb-4">Profil Pengguna</h2>
-            <div className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Username</label>
-                <p className="font-semibold">{user.username}</p>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
+              
               <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <p className="font-semibold">{user.email}</p>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <p className="font-semibold">{user.isPremium ? 'Premium' : 'Gratis'}</p>
+              
+              <div className="flex justify-between items-center pt-4">
+                <Button type="submit">Login</Button>
+                <Button variant="ghost" type="button" onClick={onClose}>
+                  Batal
+                </Button>
+              </div>
+            </form>
+            
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Belum punya akun?{" "}
+                <button 
+                  type="button" 
+                  className="text-primary hover:underline"
+                  onClick={onSwitchToRegister}
+                >
+                  Daftar di sini
+                </button>
+              </p>
+            </div>
+          </motion.div>
+        </div>
+    );
+};
+
+const RegisterModal = ({ onClose, onRegister, onSwitchToLogin }) => {
+    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (password !== confirmPassword) {
+            alert("Password dan konfirmasi password tidak cocok");
+            return;
+        }
+        onRegister(email, username, password);
+    };
+    
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-background p-6 rounded-lg shadow-lg w-full max-w-md"
+          >
+            <h2 className="text-2xl font-bold mb-4">Daftar Akun</h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <Label htmlFor="reg-email">Email</Label>
+                    <Input type="email" id="reg-email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                </div>
+                <div>
+                    <Label htmlFor="username">Username</Label>
+                    <Input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} required />
+                </div>
+                <div>
+                    <Label htmlFor="reg-password">Password</Label>
+                    <Input type="password" id="reg-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                </div>
+                <div>
+                    <Label htmlFor="confirm-password">Konfirmasi Password</Label>
+                    <Input type="password" id="confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                </div>
+
+              <div className="flex justify-between items-center pt-4">
+                <Button type="submit">Daftar</Button>
+                <Button variant="ghost" type="button" onClick={onClose}>
+                  Batal
+                </Button>
+              </div>
+            </form>
+            
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Sudah punya akun?{" "}
+                <button 
+                  type="button" 
+                  className="text-primary hover:underline"
+                  onClick={onSwitchToLogin}
+                >
+                  Login di sini
+                </button>
+              </p>
+            </div>
+          </motion.div>
+        </div>
+    );
+};
+
+const PaymentModal = ({ onClose, onSuccess }) => {
+    const [selectedPlan, setSelectedPlan] = useState("bulanan");
+    
+    const handlePayment = () => {
+        // Simulasi pembayaran berhasil
+        alert("Pembayaran berhasil! Terima kasih telah berlangganan.");
+        onSuccess();
+    };
+    
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-background p-6 rounded-lg shadow-lg w-full max-w-md"
+          >
+            <h2 className="text-2xl font-bold mb-4">Pembayaran Premium</h2>
+            
+            <div className="mb-4">
+              <Label>Pilih Paket Langganan</Label>
+              <div className="flex space-x-4 mt-2">
+                <div 
+                  className={`p-4 border rounded-md cursor-pointer flex-1 ${
+                    selectedPlan === "bulanan" ? "border-primary bg-primary/10" : "border-input"
+                  }`}
+                  onClick={() => setSelectedPlan("bulanan")}
+                >
+                  <h3 className="font-semibold">Bulanan</h3>
+                  <p className="text-lg font-bold">Rp 10.000</p>
+                </div>
+                <div 
+                  className={`p-4 border rounded-md cursor-pointer flex-1 ${
+                    selectedPlan === "tahunan" ? "border-primary bg-primary/10" : "border-input"
+                  }`}
+                  onClick={() => setSelectedPlan("tahunan")}
+                >
+                  <h3 className="font-semibold">Tahunan</h3>
+                  <p className="text-lg font-bold">Rp 50.000</p>
+                  <p className="text-sm text-muted-foreground">Hemat 58%</p>
+                </div>
               </div>
             </div>
-          </Card>
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-blue-600 text-white p-8 mt-12">
-        <div className="container mx-auto text-center">
-          <p>&copy; 2024 Tread Skoola. Semua hak dilindungi.</p>
+            
+            <div className="mb-6">
+              <Label>Scan QRIS untuk Pembayaran</Label>
+              <div className="mt-2 p-4 bg-white rounded-md flex justify-center">
+                <img 
+                  src="https://placeholder-image-service.onrender.com/image/200x200?prompt=QRIS%20payment%20code&id=0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d" 
+                  alt="QRIS payment code" 
+                  className="w-40 h-40"
+                />
+              </div>
+              <p className="text-sm text-muted-foreground mt-2 text-center">
+                Scan kode QR di atas menggunakan aplikasi mobile banking atau e-wallet Anda
+              </p>
+            </div>
+            
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={onClose}>Batal</Button>
+              <Button className="bg-blue-600 hover:bg-blue-700" onClick={handlePayment}>
+                Saya sudah bayar
+              </Button>
+            </div>
+          </motion.div>
         </div>
-      </footer>
-    </div>
-  );
-}
+    );
+};
+
+// =================================================================
+// START: KOMPONEN UTAMA (EduReader)
+// =================================================================
+
+const EduReader = () => {
+    // State Initialization
+    const [user, setUser] = useState(null);
+    const [articles, setArticles] = useState(MOCK_ARTICLES);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("Semua");
+    const [darkMode, setDarkMode] = useState(false);
+    const [readingList, setReadingList] = useState([]);
+    const [bookmarks, setBookmarks] = useState([]);
+    const [isPremium, setIsPremium] = useState(false); 
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [showRegisterModal, setShowRegisterModal] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [activeTab, setActiveTab] = useState("home"); 
+
+    // Efek untuk menyalakan mode gelap
+    useEffect(() => {
+        if (darkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [darkMode]);
+
+    // Fungsi autentikasi
+    const handleLogin = (email, password) => {
+        // Simulasi login
+        setUser({
+            id: 1,
+            email,
+            username: email.split('@')[0],
+            name: "Pengguna EduReader",
+            profilePicture: "https://placeholder-image-service.onrender.com/image/40x40?prompt=friendly%20student%20profile%20picture&id=userprofile12345"
+        });
+        // Set premium jika email mengandung "premium"
+        setIsPremium(email.includes("premium"));
+        setShowLoginModal(false);
+        setActiveTab("profil"); 
+    };
+    
+    const handleRegister = (email, username, password) => {
+        // Simulasi registrasi
+        setUser({
+            id: Date.now(),
+            email,
+            username,
+            name: username,
+            profilePicture: "https://placeholder-image-service.onrender.com/image/40x40?prompt=friendly%20student%20profile%20picture&id=newuser" + Date.now()
+        });
+        setShowRegisterModal(false);
+        setActiveTab("profil"); 
+    };
+
+    const handleLogout = () => {
+        setUser(null);
+        setReadingList([]);
+        setBookmarks([]);
+        setIsPremium(false);
+        setActiveTab("home");
+    };
+
+    // Fungsi manajemen artikel
+    const addToReadingList = (article) => {
+        if (!readingList.some(item => item.id === article.id)) {
+            setReadingList([...readingList, article]);
+        }
+    };
+    const removeFromReadingList = (articleId) => {
+        setReadingList(readingList.filter(item => item.id !== articleId));
+    };
+    const toggleBookmark = (articleId) => {
+        if (bookmarks.includes(articleId)) {
+            setBookmarks(bookmarks.filter(id => id !== articleId));
+        } else {
+            setBookmarks([...bookmarks, articleId]);
+        }
+    };
+
+    // Filter artikel
+    const filteredArticles = articles.filter(article => {
+        const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                article.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        const matchesCategory = selectedCategory === "Semua" || article.category === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
+    
+    // --- Render Logika ---
+    const renderContent = () => {
+        // Tampilan Home
+        if (activeTab === "home") {
+            return (
+                <div>
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="mb-8 p-4 bg-secondary rounded-lg"
+                    >
+                        <h2 className="text-xl font-semibold mb-2">Fakta Menarik Hari Ini</h2>
+                        <p>{MOCK_FACTS[Math.floor(Math.random() * MOCK_FACTS.length)]}</p>
+                    </motion.div>
+                    <h2 className="text-2xl font-bold mb-4 text-blue-700">Materi Pembelajaran Populer</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredArticles.slice(0, 3).map(article => (
+                            <ArticleCard 
+                                key={article.id} 
+                                article={article} 
+                                onAddToList={addToReadingList}
+                                onToggleBookmark={toggleBookmark}
+                                isBookmarked={bookmarks.includes(article.id)}
+                                isPremiumUser={isPremium}
+                            />
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // Tampilan Artikel
+        if (activeTab === "artikel") {
+            return (
+                <div>
+                    <h2 className="text-2xl font-bold mb-4 text-blue-700">Semua Materi Pembelajaran</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredArticles.map(article => (
+                            <ArticleCard 
+                                key={article.id} 
+                                article={article} 
+                                onAddToList={addToReadingList}
+                                onToggleBookmark={toggleBookmark}
+                                isBookmarked={bookmarks.includes(article.id)}
+                                isPremiumUser={isPremium}
+                            />
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+        
+        // Tampilan Kategori
+        if (activeTab === "kategori") {
+            return (
+                <div>
+                    <h2 className="text-2xl font-bold mb-4 text-blue-700">Kategori Matematika</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        {CATEGORIES.map(category => (
+                            <motion.div 
+                                key={category}
+                                whileHover={{ scale: 1.05 }}
+                                className="p-6 bg-card text-card-foreground rounded-lg shadow-md text-center cursor-pointer"
+                                onClick={() => {
+                                    setSelectedCategory(category);
+                                    setActiveTab("artikel");
+                                }}
+                            >
+                                <h3 className="font-semibold">{category}</h3>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // Tampilan Premium
+        if (activeTab === "premium") {
+            return (
+                 <div className="max-w-2xl mx-auto">
+                    <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">Upgrade ke Premium</h2>
+                    
+                    {!isPremium ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card className="text-center">
+                          <CardHeader>
+                            <CardTitle>Bulanan</CardTitle>
+                            <CardDescription>Rp 10.000/bulan</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="text-left space-y-2 mb-4">
+                              <li>Akses semua artikel premium</li>
+                              <li>Game edukasi interaktif</li>
+                              <li>Forum diskusi</li>
+                              <li>Ringkasan otomatis</li>
+                            </ul>
+                          </CardContent>
+                          <CardFooter>
+                            <Button className="w-full" onClick={() => setShowPaymentModal(true)}>
+                              Berlangganan
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                        
+                        <Card className="text-center border-primary">
+                          <CardHeader>
+                            <CardTitle>Tahunan</CardTitle>
+                            <CardDescription className="text-primary">Rp 50.000/tahun</CardDescription>
+                            <div className="text-sm text-muted-foreground">Hemat 58%</div>
+                          </CardHeader>
+                          <CardContent>
+                            <ul className="text-left space-y-2 mb-4">
+                              <li>Semua fitur bulanan</li>
+                              <li>Prioritas support</li>
+                              <li>Konten eksklusif</li>
+                              <li>Diskon khusus event</li>
+                            </ul>
+                          </CardContent>
+                          <CardFooter>
+                            <Button className="w-full" onClick={() => setShowPaymentModal(true)}>
+                              Berlangganan
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      </div>
+                    ) : (
+                      <div className="text-center p-8 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg border-2 border-blue-200 shadow-lg">
+                        <div className="mb-6">
+                          <img 
+                            src="https://placeholder-image-service.onrender.com/image/80x80?prompt=premium%20crown%20icon%20with%20gold%20color&id=premiumcrown789" 
+                            alt="Premium crown icon" 
+                            className="mx-auto mb-4 w-16 h-16"
+                          />
+                          <h3 className="text-2xl font-bold text-blue-700 mb-2">✨ Selamat! Anda Sekarang Premium Member</h3>
+                          <p className="text-blue-600 mb-6">Nikmati semua keuntungan eksklusif yang tersedia untuk Anda</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                          <div className="p-4 bg-white rounded-lg border border-blue-200 shadow-sm">
+                            <img src="https://placeholder-image-service.onrender.com/image/48x48?prompt=educational%20game%20icon%20with%20fun%20colors&id=gameicon456" alt="Educational games icon" className="mx-auto mb-3 w-12 h-12"/>
+                            <h4 className="font-semibold text-blue-800 mb-1">30+ Game Edukatif</h4>
+                            <p className="text-xs text-muted-foreground">Belajar sambil bermain</p>
+                          </div>
+                          <div className="p-4 bg-white rounded-lg border border-blue-200 shadow-sm">
+                            <img src="https://placeholder-image-service.onrender.com/image/48x48?prompt=discussion%20forum%20icon%20with%20people&id=forumnicon789" alt="Discussion forum icon" className="mx-auto mb-3 w-12 h-12"/>
+                            <h4 className="font-semibold text-blue-800 mb-1">Forum Eksklusif</h4>
+                            <p className="text-xs text-muted-foreground">Diskusi dengan ahli</p>
+                          </div>
+                          <div className="p-4 bg-white rounded-lg border border-blue-200 shadow-sm">
+                            <img src="https://placeholder-image-service.onrender.com/image/48x48?prompt=ai%20summary%20icon%20modern&id=summaryicon123" alt="Automatic summary icon" className="mx-auto mb-3 w-12 h-12"/>
+                            <h4 className="font-semibold text-blue-800 mb-1">Ringkasan AI</h4>
+                            <p className="text-xs text-muted-foreground">Pahami lebih cepat</p>
+                          </div>
+                          <div className="p-4 bg-white rounded-lg border border-blue-200 shadow-sm">
+                            <img src="https://placeholder-image-service.onrender.com/image/48x48?prompt=premium%20content%20icon%20gold&id=contenticon456" alt="Premium content icon" className="mx-auto mb-3 w-12 h-12"/>
+                            <h4 className="font-semibold text-blue-800 mb-1">200+ Konten Premium</h4>
+                            <p className="text-xs text-muted-foreground">Akses tanpa batas</p>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-blue-50 p-4 rounded-lg mb-6">
+                          <h4 className="font-semibold text-blue-800 mb-2">✨ Keuntungan Tambahan:</h4>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="flex items-center"><img src="https://placeholder-image-service.onrender.com/image/16x16?prompt=checkmark%20green&id=check1" alt="Check" className="w-3 h-3 mr-1"/>Video Pembelajaran</div>
+                            <div className="flex items-center"><img src="https://placeholder-image-service.onrender.com/image/16x16?prompt=checkmark%20green&id=check2" alt="Check" className="w-3 h-3 mr-1"/>Kuis Interaktif</div>
+                            <div className="flex items-center"><img src="https://placeholder-image-service.onrender.com/image/16x16?prompt=checkmark%20green&id=check3" alt="Check" className="w-3 h-3 mr-1"/>Sertifikat Penyelesaian</div>
+                            <div className="flex items-center"><img src="https://placeholder-image-service.onrender.com/image/16x16?prompt=checkmark%20green&id=check4" alt="Check" className="w-3 h-3 mr-1"/>Dukungan Prioritas</div>
+                          </div>
+                        </div>
+                        
+                        <Button variant="outline" className="border-blue-300 text-blue-700">
+                          🎁 Lihat Semua Fitur Premium
+                        </Button>
+                      </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Tampilan Profil
+        if (activeTab === "profil") {
+            return (
+                <div className="max-w-md mx-auto">
+                    {user ? (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-center">Profil Pengguna</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                          {/* Profile Photo Section */}
+                          <div className="text-center">
+                            <div className="relative inline-block">
+                              <img 
+                                src={user.profilePicture || "https://placeholder-image-service.onrender.com/image/80x80?prompt=user%20profile%20icon&id=defaultprofile"} 
+                                alt="Foto profil" 
+                                className="w-24 h-24 rounded-full border-4 border-blue-200 object-cover mx-auto mb-3"
+                              />
+                              <button className="absolute bottom-0 right-0 bg-blue-500 text-white p-1 rounded-full">
+                                <img src="https://placeholder-image-service.onrender.com/image/16x16?prompt=camera%20icon&id=cameraicon" alt="Ubah foto" className="w-4 h-4"/>
+                              </button>
+                            </div>
+                            <h2 className="text-xl font-bold">{user.name}</h2>
+                            <p className="text-muted-foreground">@{user.username}</p>
+                          </div>
+                          
+                          {/* User Info */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="p-3 bg-blue-50 rounded-lg text-center">
+                              <p className="text-2xl font-bold text-blue-700">{readingList.length}</p>
+                              <p className="text-sm text-muted-foreground">Daftar Bacaan</p>
+                            </div>
+                            <div className="p-3 bg-blue-50 rounded-lg text-center">
+                              <p className="text-2xl font-bold text-blue-700">{bookmarks.length}</p>
+                              <p className="text-sm text-muted-foreground">Bookmark</p>
+                            </div>
+                          </div>
+                          
+                          {/* User Details */}
+                          <div className="space-y-3">
+                            <div>
+                              <Label>Email</Label>
+                              <p className="font-semibold">{user.email}</p>
+                            </div>
+                            <div>
+                              <Label>Status Keanggotaan</Label>
+                              <div className="flex items-center">
+                                <span className={`font-semibold ${isPremium ? 'text-amber-600' : 'text-gray-600'}`}>
+                                  {isPremium ? "⭐ Premium Member" : "Basic Member"}
+                                </span>
+                                {!isPremium && (
+                                  <Button 
+                                    variant="link" 
+                                    size="sm" 
+                                    className="ml-2 text-blue-600"
+                                    onClick={() => setActiveTab("premium")}
+                                  >
+                                    Upgrade
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Reading List */}
+                          <div>
+                            <Label>Daftar Bacaan Saya ({readingList.length})</Label>
+                            {readingList.length > 0 ? (
+                              <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
+                                {readingList.map(item => (
+                                  <div key={item.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                    <span className="text-sm truncate">{item.title}</span>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      onClick={() => removeFromReadingList(item.id)}
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      Hapus
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-muted-foreground text-sm mt-2">Belum ada artikel dalam daftar bacaan</p>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <div className="text-center p-6">
+                        <img src="https://placeholder-image-service.onrender.com/image/80x80?prompt=user%20profile%20icon&id=profileicon123" alt="Profile icon" className="mx-auto mb-4 w-16 h-16"/>
+                        <p className="mb-4 text-muted-foreground">Silakan login untuk mengakses profil Anda</p>
+                        <Button onClick={() => setShowLoginModal(true)}>Login ke Akun Saya</Button>
+                      </div>
+                    )}
+                </div>
+            );
+        }
+
+        return <div className="text-center p-10">Pilih tab di atas untuk melihat konten.</div>;
+    };
+
+    return (
+        <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+            {/* Header */}
+            <header className="sticky top-0 z-10 bg-blue-50 border-b border-blue-200 shadow-sm">
+                <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+                    <h1 className="text-2xl font-bold text-blue-600">Tread Skoola</h1>
+                    {/* Tombol Dark Mode & Ikon */}
+                    <div className="flex items-center space-x-4">
+                        <button
+                            onClick={() => setDarkMode(!darkMode)}
+                            className="p-2 rounded-full hover:bg-blue-100"
+                            aria-label="Toggle dark mode"
+                        >
+                            {/* Ikon Dark Mode/Light Mode */}
+                        </button>
+                        {/* Ikon Statis */}
+                        <img src="https://placeholder-image-service.onrender.com/image/40x40?prompt=cute%20math%20mascot%20with%20glasses%20and%20smile&id=5f6a7b8c-9d0e-6f7a-1c2d-3e4f5a6b7c8d" alt="Math mascot character" className="w-10 h-10"/>
+                    </div>
+                    {/* Login / Logout Area */}
+                    {user ? (
+                        <div className="flex items-center space-x-3">
+                            <Button variant="outline" onClick={handleLogout}>Logout</Button>
+                        </div>
+                    ) : (
+                        <div className="flex space-x-2">
+                            <Button variant="outline" onClick={() => setShowLoginModal(true)}>Login</Button>
+                            <Button onClick={() => setShowRegisterModal(true)}>Daftar</Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Navigation */}
+                <nav className="container mx-auto px-4 pb-2">
+                    <div className="flex space-x-6 overflow-x-auto">
+                        {["Home", "Artikel", "Kategori", "Premium", "Profil"].map(tab => (
+                            <button
+                                key={tab}
+                                className={`px-3 py-2 rounded-md font-medium ${
+                                    activeTab === tab.toLowerCase()
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'hover:bg-accent'
+                                }`}
+                                onClick={() => setActiveTab(tab.toLowerCase())}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
+                </nav>
+            </header>
+
+            {/* Main Content */}
+            <main className="container mx-auto px-4 py-6">
+                {/* Search & Filter */}
+                <div className="mb-8 flex flex-col md:flex-row gap-4">
+                    <div className="flex-grow">
+                        <Input
+                            type="text"
+                            placeholder="Cari artikel atau topik..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full"
+                        />
+                    </div>
+                    <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="px-4 py-2 rounded-md border border-input bg-background"
+                    >
+                        <option value="Semua">Semua Kategori</option>
+                        {CATEGORIES.map(category => (
+                            <option key={category} value={category}>{category}</option>
+                        ))}
+                    </select>
+                </div>
+                {renderContent()}
+            </main>
+
+            {/* Modals */}
+            {showLoginModal && (
+                <LoginModal 
+                    onClose={() => setShowLoginModal(false)}
+                    onLogin={handleLogin}
+                    onSwitchToRegister={() => {
+                        setShowLoginModal(false);
+                        setShowRegisterModal(true);
+                    }}
+                />
+            )}
+            {showRegisterModal && (
+                <RegisterModal 
+                    onClose={() => setShowRegisterModal(false)}
+                    onRegister={handleRegister}
+                    onSwitchToLogin={() => {
+                        setShowRegisterModal(false);
+                        setShowLoginModal(true);
+                    }}
+                />
+            )}
+            {showPaymentModal && (
+                <PaymentModal 
+                    onClose={() => setShowPaymentModal(false)}
+                    onSuccess={() => {
+                        setIsPremium(true);
+                        setShowPaymentModal(false);
+                        setActiveTab("profil"); 
+                    }}
+                />
+            )}
+        </div>
+    );
+};
+
+export default EduReader;
